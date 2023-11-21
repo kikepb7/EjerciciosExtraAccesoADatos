@@ -26,4 +26,14 @@ public class BibliotecaDAOTest {
     void realizarPrestamo() {
         dao.realizarPrestamo("12325432GR", "62436732H");
     }
+
+    @Test
+    void masActivo() {
+        System.out.println(dao.masActivo());
+    }
+
+    @Test
+    void borrarSinUso() {
+        dao.borrarSinUso();
+    }
 }

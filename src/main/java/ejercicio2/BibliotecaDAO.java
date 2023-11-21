@@ -145,4 +145,68 @@ public class BibliotecaDAO {
             cerrarConexion(conexion, sentencia, resultado);
         }
     }
+
+    public String masActivo() {
+        Connection conexion = null;
+        PreparedStatement sentencia = null;
+        ResultSet resultado = null;
+        StringBuilder res = new StringBuilder();
+
+        try {
+            conexion = establecerConexion();
+
+            // Devolver el socio que hace más préstamos
+            String sql_masActivo = "SELECT s.dni, s.nombre, COUNT(p.id) AS cantidad_prestamos " +
+                    "FROM socios s " +
+                    "JOIN prestamos p ON s.id = p.socio " +
+                    "GROUP BY s.id, s.dni, s.nombre " +
+                    "ORDER BY cantidad_prestamos DESC " +
+                    "LIMIT 1";
+
+            sentencia = conexion.prepareStatement(sql_masActivo);
+            resultado = sentencia.executeQuery();
+
+            while(resultado.next()) {
+                String dni = resultado.getString("dni");
+                String nombre = resultado.getString("nombre");
+                int cantidadPrestamos = resultado.getInt("cantidad_prestamos");
+
+                res.append("El socio más activo es: ").append(nombre).append(", con DNI: ").append(dni).append(", con ").append(cantidadPrestamos).append(" préstamos.");
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error de SQL\n" + e.getMessage());
+        } finally {
+            cerrarConexion(conexion, sentencia, resultado);
+        }
+
+        return res.toString();
+    }
+
+    public void borrarSinUso() {
+        Connection conexion = null;
+        PreparedStatement sentencia = null;
+        ResultSet resultado = null;
+
+        try {
+            conexion = establecerConexion();
+
+            String sql_borrarLibros = "DELETE FROM libros " +
+                    "WHERE id NOT IN (SELECT DISTINCT libro FROM prestamos)";
+
+            sentencia = conexion.prepareStatement(sql_borrarLibros);
+
+            int filasBorradas = sentencia.executeUpdate();
+
+            if (filasBorradas > 0) {
+                System.out.println("\nSe han borrado correctamente " + filasBorradas + " libros que no tenian préstamo.");
+            } else {
+                System.out.println("No hay libros en préstamo para borrar");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error de SQL\n" + e.getMessage());
+        } finally {
+            cerrarConexion(conexion, sentencia, resultado);
+        }
+    }
 }
